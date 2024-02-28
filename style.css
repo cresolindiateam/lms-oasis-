@@ -1,0 +1,17 @@
+ @page {
+     
+       size: landscape;
+        margin: 10% !important;
+     }
+
+ @media print {
+      span { page-break-before : always !important; }
+     
+     
+ 
+
+    body{
+      white-space: nowrap !important;
+      hieght: 10px !important;
+     }
+ }
