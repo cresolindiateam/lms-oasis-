@@ -16,7 +16,7 @@ $username="newrealstate_LeadManagementUser";
 $password="eNUt@F$Yo0KY";
 $dbname = "newrealstate_LeadManagementDB";*/
 
-
+//ajay
 // $servername="localhost";
 // $username="newleaduser";
 // $password="tQc#gXaD6F&y";
