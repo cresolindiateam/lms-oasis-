@@ -8,8 +8,12 @@ $name=$_POST['edit_name'];
 $email=$_POST['edit_email'];
 $phone=$_POST['edit_phone_number'];
 $role=$_POST['edit_role_type'];
-$projectid=$_POST['project_id'];
-$query = "update  project_team set  project_id ='".$projectid."', role_type ='".$role."',name ='".$name."',email ='".$email."',phone_number ='".$phone."',password ='".$password."' WHERE id = ".$row_id;
+$clientid=$_POST['client_id'];
+$expiry_date=$_POST['teammemberexpiryedit'];
+$query = "update  client_team_members set  client_id ='".$clientid."', role_type ='".$role."',name ='".$name."',email ='".$email."',phone_number ='".$phone."',password ='".$password."',expiry_date ='".$expiry_date."' WHERE id = ".$row_id;
+
+
+
 
 
 if (mysqli_query($conn, $query)) {

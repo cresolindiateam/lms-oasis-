@@ -1,14 +1,17 @@
 <?php
 session_start();
+
+/*print_r($_SESSION);die;*/ 
 if(!isset($_SESSION['proj_team_id']))
 {
   header("location: index.php");
 }
 include('header.php');
-$sql = "SELECT id, project_name from project_information where id=".$_SESSION['proj_info_id']." order by id desc";
+/*$sql = "SELECT id, project_name from project_information where client_id=".$_SESSION['proj_info_id']." order by id desc";
+*/$sql = "SELECT id, project_name from project_information where 1 order by id desc";
 $result = mysqli_query($conn,$sql);
 $notemamember='';
-$sql1 = "SELECT id from project_team where role_type=3 and  project_id=".$_SESSION['proj_info_id']." order by id desc";
+$sql1 = "SELECT id from client_team_members where role_type=3 and  client_id=".$_SESSION['proj_info_id']." order by id desc";
  
 $result1 = mysqli_query($conn,$sql1);
 if ($result1)
@@ -17,13 +20,17 @@ if ($result1)
     }
  $sql2 = "SELECT id, project_name from project_information order by id desc";
  $result2 = mysqli_query($conn,$sql2);
+
+
+ $sql21 = "SELECT id, name, members from clients where 1 and client_hidden_status=0 order by id desc";
+$result21 = mysqli_query($conn,$sql21);
 ?>
 
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Lead Mangement</title>
+  <title>Lead Mangement Project test demo</title>
   <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ionicons/2.0.1/css/ionicons.min.css">
@@ -65,45 +72,60 @@ if ($result1)
           <div class="modal-header">
             <h4 class="modal-title">Edit Project</h4>
             <button type="button" class="close" data-dismiss="modal">&times;</button>
-            
           </div>
           <div class="modal-body">
             <div class="user-info-area">
               <form id="updateform" enctype="multipart/form-data" method="post" class="form-inline" >
-             
-<input type="hidden" name="project_id" id="project_id" value=""/>
-             
-                     <div class="form-group" style="margin-bottom:10px;">
+               <input type="hidden" name="project_id" id="project_id" value=""/>
+                   <div class="form-group" style="margin-bottom:10px;">
                     <label class="personal-info-label" style="margin-right:5px;width:150px;"><strong>Name:-</strong></label>
                     <input type="text" name="edit_name" class="form-control" id="edit_name"/>
-                </div>
+                   </div>
+                
+                 <div class="form-group" style="margin-bottom:10px">
+                    <label class="personal-info-label" style="margin-right:5px;width:150px;"><strong>Project Description:-</strong></label>
+                    <textarea name="edit_project_desc" class="form-control" id="edit_project_desc"></textarea>
+                   <!-- <input  type="text" name="edit_project_desc" class="form-control" id="edit_project_desc"/>
+                   --> 
+                 </div>
                 
                  <div class="form-group" style="margin-bottom:10px">
                     <label class="personal-info-label" style="margin-right:5px;width:150px;"><strong>Project Url:-</strong></label>
-                    <input type="text" name="edit_project_url" class="form-control" id="edit_project_url"/>
-             </div>
-             <div class="form-group" style="margin-bottom:10px">
-                    <label class="personal-info-label" style="margin-right:5px;width:150px;"><strong>Project Image Url:-</strong></label>
-                    <input type="text" name="edit_project_image_url" class="form-control" id="edit_project_image_url"/>
-             </div>
-            
-                  <div class="form-group" style="margin-bottom:10px">
+                    <input readonly type="text" name="edit_project_url" class="form-control" id="edit_project_url"/>
+                    </div>
+                 <div class="form-group" style="margin-bottom:10px">
+                        <label class="personal-info-label" style="margin-right:5px;width:150px;"><strong>Project Image Url:-</strong></label>
+                        <input type="text" name="edit_project_image_url" class="form-control" id="edit_project_image_url"/>
+                 </div>
+                
+                   <div class="form-group" style="margin-bottom:10px">
                     <label class="personal-info-label" style="margin-right:5px;width:150px;"><strong>Client Name:-</strong></label>
-                    <input type="text" name="edit_client_name" class="form-control" id="edit_client_name"/>
-             </div>
+                   <!--  <input type="text" name="edit_client_name" class="form-control" id="edit_client_name"/>
+ -->
+                       <?php if($_SESSION['role_type']==1||$_SESSION['role_type']==2||$_SESSION['role_type']==3){?>
+                    <select name="edit_client_name" class="form-control" id="edit_client_name">
+                        <?php        
+
+
+                            foreach($result21 as $row21) 
+                            {
+
+
+                              ?>
+                          <option value="<?php echo $row21['id']; ?>"><?php echo $row21['name']; ?></option>
+                          <?php }?>  
+                             </select>
+                          <?php }?>
+                  </div>
             
-              <div class="form-group" style="margin-bottom:10px">
+            <!--   <div class="form-group" style="margin-bottom:10px">
                     <label class="personal-info-label" style="margin-right:5px;width:150px;"><strong>User Name:-</strong></label>
                     <input type="text" name="edit_user_name" class="form-control" id="edit_user_name"/>
-             </div>
-            
-                    
+                   </div>
                      <div class="form-group" style="margin-bottom:10px;">
                     <label class="personal-info-label" style="margin-right:5px;width:150px;"><strong>Password:-</strong></label>
                     <input type="password" name="edit_password" class="form-control" id="edit_password"/>
-                </div>
-
-
+                   </div>-->
                 <hr/>
               </form>
             </div>
@@ -124,52 +146,140 @@ if ($result1)
         <!-- Modal content-->
         <div class="modal-content">
           <div class="modal-header">
-            <h4 class="modal-title" style="color: #fff!important;
-    background-color: #1893e6;
-    border-color: #158bda;">Create New Project</h4>
+            <h4 class="modal-title" style="color: #fff!important;background-color: #1893e6;border-color: #158bda;">Create New Project</h4>
             <button type="button" class="close" data-dismiss="modal">&times;</button>
-            
           </div>
           <div class="modal-body">
             <div class="user-info-area">
               <form enctype="multipart/form-data" method="post" class="form-inline" id="createprojectform">
-<div class="form-group" style="margin-bottom:10px">
+                <div class="form-group" style="margin-bottom:10px">
     
      <?php if($_SESSION['role_type']!=1){?>
-                      <input type="hidden" name="project_id" class="form-control" value="<?php echo $_SESSION['proj_info_id']; ?>" id="idProject"/>
+                      <input type="hidden" name="client_id" class="form-control" value="<?php echo $_SESSION['proj_info_id']; ?>" id="idProject"/>
        
             <?php }
             ?>
                    <input type="hidden" name="ipAddress" class="form-control" id="ipAddress"/>   
                     <input type="hidden" name="platformType" class="form-control" id="platformType"/>          
+ <input type="hidden" name="team_id" class="form-control" id="<?php echo $_SESSION['proj_team_id'] ?>"/>
+
                     <label class="personal-info-label" style="margin-right:5px;width:150px;"><strong>Name:-</strong></label>
                     <input type="text" name="name" class="form-control" id="name"/>
                     </div>
+              <input type="hidden" name="client_id" class="form-control" value="<?php echo $_SESSION['proj_info_id']; ?>" />
+              
              
-             <div class="form-group" style="margin-bottom:10px">
-                    <label class="personal-info-label" style="margin-right:5px;width:150px;"><strong>Project Url:-</strong></label>
-                    <input type="text" name="project_url" class="form-control" id="project_url"/>
+       <div class="form-group" style="margin-bottom:10px">
+                    <label class="personal-info-label" style="margin-right:5px;width:150px;"><strong>Project description:-</strong></label>
+                   <!--  <input type="text" name="project_image_url" /> -->
+
+                    <input  id="project_desc" class="form-control" name="project_desc" type="text" >
              </div>
+
              <div class="form-group" style="margin-bottom:10px">
                     <label class="personal-info-label" style="margin-right:5px;width:150px;"><strong>Project Image Url:-</strong></label>
-                    <input type="text" name="project_image_url" class="form-control" id="project_image_url"/>
+                   <!--  <input type="text" name="project_image_url" /> -->
+
+                    <input  id="project_image_url" name="project_image_url" type="text" class="form-control" >
              </div>
             
-                  <div class="form-group" style="margin-bottom:10px">
+                   <div class="form-group" style="margin-bottom:10px">
                     <label class="personal-info-label" style="margin-right:5px;width:150px;"><strong>Client Name:-</strong></label>
-                    <input type="text" name="client_name" class="form-control" id="client_name"/>
+                    <!-- <input type="text" name="client_name" class="form-control" id="client_name"/> -->
+                        <?php if($_SESSION['role_type']==1||$_SESSION['role_type']==2||$_SESSION['role_type']==3){?>
+                    <select name="client_name" class="form-control" id="client_name">
+                        <?php        
+
+
+                            foreach($result21 as $row21) 
+                            {
+print_r($row21);
+
+                              ?>
+                          <option value="<?php echo $row21['id']; ?>"><?php echo $row21['name']; ?></option>
+                          <?php }?>  
+                             </select>
+                          <?php }?>
+
              </div>
             
-              <div class="form-group" style="margin-bottom:10px">
+            <!--   <div class="form-group" style="margin-bottom:10px">
                     <label class="personal-info-label" style="margin-right:5px;width:150px;"><strong>User Name:-</strong></label>
                     <input type="text" name="user_name" class="form-control" id="user_name"/>
-             </div>
+             </div> -->
             
-                    
+                 <!--    
                      <div class="form-group" style="margin-bottom:10px;">
                     <label class="personal-info-label" style="margin-right:5px;width:150px;"><strong>Password:-</strong></label>
                     <input type="password" name="password" class="form-control" id="password"/>
+                </div> -->
+
+               <div class="form-group" style="margin-bottom:10px;">
+                    <label class="personal-info-label" style="margin-right:5px;width:150px;"><strong>Website:-</strong></label>
+                   <select class="form-control" id="webstatusvalue" onchange="webstatuscheck()">
+                     <option value="yes" selected>yes</option>
+                     <option value="no">no</option>
+                   </select>
                 </div>
+
+               <div id="project_url_section"  class="form-group" style="margin-bottom:10px;">
+                    <label class="personal-info-label" style="margin-right:5px;width:150px;"><strong>Project Url:-</strong></label>
+                    <input type="text" name="project_url" class="form-control" id="project_url"/>
+              
+              </div>
+
+ 
+                   <div id="project_media_section">
+                  <div class="form-group" style="margin-bottom:10px;">
+                    <label class="personal-info-label" style="margin-right:5px;width:150px;"><strong>Type of Media:-</strong></label>
+                   <select class="form-control" name="type_of_media[]" multiple>
+                     <option value="image">image</option>
+                     <option value="document">brochure</option>
+                     <option value="image_floor">floor plan image</option>
+                     <option value="image_map">location map image</option>
+                     <option value="image_siteplan">site plan image</option>
+                     <option value="image_paymentplan">payment plan image</option>
+                   </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom:10px;">
+                    <input name="upload[]"  type="file" multiple="multiple">
+                    </div>
+
+
+                <div class="form-group" style="margin-bottom:10px;">
+                    <input name="uploaddoc[]"  type="file" multiple="multiple">
+                    </div>
+
+
+                       <div class="form-group" style="margin-bottom:10px;">
+                    <input name="uploadfloor[]"  type="file" multiple="multiple">
+                    </div>
+
+
+                       <div class="form-group" style="margin-bottom:10px;">
+                    <input name="uploadmap[]"  type="file" multiple="multiple">
+                    </div>
+
+
+                       <div class="form-group" style="margin-bottom:10px;">
+                    <input name="uploadsite[]"  type="file" multiple="multiple">
+                    </div>
+
+                       <div class="form-group" style="margin-bottom:10px;">
+                    <input name="uploadpayment[]"  type="file" multiple="multiple">
+                    </div>
+
+                    <!-- <input type="text" name="project_url_create" class="form-control" id="project_url_create"> -->
+                  </div>
+
+<!-- 
+                   <div class="form-group" style="margin-bottom:10px;">
+                    <label class="personal-info-label" style="margin-right:5px;width:150px;"><strong>Password:-</strong></label>
+                    <input type="password" name="password" class="form-control" id="password"/>
+                </div>
+ -->
+
 
                 <hr/>
               </form>
@@ -205,16 +315,19 @@ if ($result1)
             
             <!-- /.box-header -->
             <div>
-              <table id="example1" class="table table-bordered table-striped table-responsive">
+              <table id="example1" class="table table-bordered table-striped">
                 <thead>
                 <tr>
                                     <th>Id</th>
                   <th>Project Name</th>
-                  <th>Client Name</th>
+                   <th>Project Description</th>
+                   <th>Project Image</th>
+                   <th>Project URL</th>
+                 <!--  <th>Client Name</th> -->
                 <!--  <th>Team Member Count</th>
                   <th>Admin Count</th>-->
                 
-                  <th>Project Image</th>
+                  
                   
                   <th>Created At</th>
                    <th>Action</th>
@@ -325,6 +438,25 @@ if (mysqli_num_rows($result) > 0) {
 
 <script>
 
+ document.getElementById("project_url_section").style.display = "flex";
+  document.getElementById("project_media_section").style.display = "none";
+function webstatuscheck()
+{
+  var x = document.getElementById("webstatusvalue").value;
+
+if(x=="yes")
+{
+  document.getElementById("project_url_section").style.display = "flex";
+  document.getElementById("project_media_section").style.display = "none";
+
+}
+else
+{
+
+document.getElementById("project_url_section").style.display = "none";
+  document.getElementById("project_media_section").style.display = "block";
+}
+}
 
  function teamCount(id){
 
@@ -458,20 +590,23 @@ function passwordchange(projectid)
          console.log(response);
     var status=response['Status'];
     var projectname=response['ProjectName'];
-    var clientname=response['ClientName'];
-    var username=response['UserName'];
+   /* var clientname=response['ClientName'];
+    var username=response['UserName'];*/
     var projectimageurl=response['ProjectImageUrl'];
     var projecturl=response['ProjectUrl'];
-    var password=response['Password']; 
+     var projectdesc=response['ProjectDesc'];
+     var clientname=response['client_id'];
+   /* var password=response['Password']; */
     
    /* alert(response['Message']);*/
     if(status==1){
        $("#edit_name").val(projectname);
        $("#edit_project_url").val(projecturl);
        $("#edit_project_image_url").val(projectimageurl);
-         $("#edit_url").val(projecturl);
+        /* $("#edit_url").val(projecturl);*/
+           $("#edit_project_desc").val(projectdesc);
        $("#edit_client_name").val(clientname);
-       $("#edit_user_name").val(username);
+      /* $("#edit_user_name").val(username);*/
        /*$("#edit_password").val(password);*/
     }
     }
@@ -533,15 +668,15 @@ function   updateProject()
     var fd=document.getElementById('updateform');
     var form_data1 = new FormData(fd);  
     if ($('#edit_name').val()== '') {
-    alert("Please Enter Password");
+    alert("Please Enter name");
   }
-  else if ($('#edit_user_name').val()== '') {
+/*  else if ($('#edit_user_name').val()== '') {
     alert("Please Enter User Name");
   }
 
  else if ($('#edit_password').val()== '') {
     alert("Please Enter Password");
-  }
+  }*/
    else if ($('#edit_project_image_url').val()== '') {
     alert("Please Enter Project Image Url");
   }
@@ -586,6 +721,10 @@ function   updateProject()
    else if ($('#project_image_url').val()== '') {
     alert("Please Enter Project Image Url");
   }
+
+
+
+
   else{
  $.ajax({
   url:"AjaxCreateProject.php", 
@@ -615,16 +754,14 @@ function   updateProject()
 
 
 $(function() {
-    
-   
-
-  
-    
   $(".menu").on("click", function() {
     $(".menu > i").toggleClass("fa-bars fa-close", 300);
     $(".sidebar-menu").toggleClass("show-sidebar", 5000);
     $("body").toggleClass("push-body", 5000);
   });
+
+   $("#example1_wrapper").parent().css('overflow','unset');
+   $("#example1").parent().css('overflow-x','scroll');
 });
 </script>
  <script type="application/javascript" src="https://api.ipify.org?format=jsonp&callback=getIP"></script>

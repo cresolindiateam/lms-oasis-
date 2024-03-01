@@ -1,11 +1,18 @@
 <?php
-   session_start();
-   require 'dbconfig.php';
-   if(!isset($_SESSION['proj_team_id']))
+session_start();
+require 'dbconfig.php';
+require 'insertleadsexcel.php'; 
+if (isset($_POST['importsubmit'])) 
+{
+  importExcelData($_FILES['file'],$conn);
+}
+ if(!isset($_SESSION['proj_team_id']))
    {
      header("location: index.php");
    }
-   $sql = "SELECT id, project_name,project_image_url from project_information where id=".$_SESSION['proj_info_id']." order by id desc";
+   /*$sql = "SELECT id, project_name,project_image_url from project_information where id=".$_SESSION['proj_info_id']." order by id desc";
+   */
+   $sql = "SELECT id, project_name,project_image_url from project_information where team_member_id=".$_SESSION['proj_team_id']." order by id desc";
    $projectresult = mysqli_query($conn,$sql);
    if ($projectresult->num_rows > 0) 
    {
@@ -18,15 +25,45 @@
    $sql777;
    if($_SESSION['role_type']==1)
    {
-    $sql777 = "SELECT id, name from project_team where 1  and (role_type=3) and (team_hidden_status=0  or team_hidden_status=1) order by id desc";
+    $sql777 = "SELECT id, name from client_team_members where 1  and (role_type=4) and (team_hidden_status=0  or team_hidden_status=1) order by id desc";
    }
    else
    {
-    $sql777 = "SELECT id, name from project_team where 1 and project_id=".$_SESSION['proj_info_id']." and role_type=3 and (team_hidden_status=0  or team_hidden_status=1) order by id desc";
+    $sql777 = "SELECT id, name from client_team_members where 1 and client_id=".$_SESSION['proj_info_id']." and role_type=4 and (team_hidden_status=0  or team_hidden_status=1) order by id desc";
    }
+
+
+
    $projectteamresult = mysqli_query($conn,$sql777);
-   $sql1 = "SELECT id, lead_status_name from lead_status_info where 1 order by id desc";
+
+
+    if($_SESSION['role_type']==2||$_SESSION['role_type']==3||$_SESSION['role_type']==4)
+   {
+   $sql1 = "SELECT id, lead_status_name from lead_status_info where 1 and client_id=".$_SESSION['proj_info_id']."   order by id desc";
+
+
    $projectstatusresult = mysqli_query($conn,$sql1);
+
+    $sql111 = "SELECT id, lead_status_name from lead_status_info where 1 and client_id=".$_SESSION['proj_info_id']."   order by id desc";
+
+
+   $projectstatusresult1 = mysqli_query($conn,$sql111);
+}
+else
+{
+$sql1 = "SELECT id, lead_status_name from lead_status_info where 1 order by id desc";
+
+
+   $projectstatusresult = mysqli_query($conn,$sql1);
+
+    $sql111 = "SELECT id, lead_status_name from lead_status_info where 1 order by id desc";
+
+
+   $projectstatusresult1 = mysqli_query($conn,$sql111);
+
+}
+
+
    $sql12='';
    if($_SESSION['role_type']==1)
    {
@@ -37,17 +74,10 @@
     $sql12 = "select count(id) as countpendingfollowlead,concat(`next_last_followup_date`, ' ', `next_last_followup_time`) as pendingleadfollowdata from leads where concat(`next_last_followup_date`, ' ', `next_last_followup_time`)<= now() and `project_info_id`=".$_SESSION['proj_info_id']." and `lead_hidden_status` = 0 and `next_last_followup_date` !='' ORDER BY `id` DESC";
    }
    $pendingleadfollowupresult = mysqli_query($conn,$sql12);
-
-echo "<pre>";
-if (!$pendingleadfollowupresult) {
-    die("Query failed: " . mysqli_error($conn));
-}
-print_r($pendingleadfollowupresult);die;
-
    $sql122='';
-   if($_SESSION['role_type']==2||$_SESSION['role_type']==3)
+   if($_SESSION['role_type']==2||$_SESSION['role_type']==3||$_SESSION['role_type']==4)
    {
-    $sql122 = "select expiry_date from project_team where 1 and id=".$_SESSION['proj_team_id']." ORDER BY `id` DESC";
+    $sql122 = "select expiry_date from client_team_members where 1 and id=".$_SESSION['proj_team_id']." ORDER BY `id` DESC";
    }
    $expirtyteamresult = mysqli_query($conn,$sql122);
    ?>
@@ -181,6 +211,9 @@ print_r($pendingleadfollowupresult);die;
             <div class="row ">
                <div  class="mobile_page_header">
                   <h4><strong>Lead List</strong></h4>
+
+
+
                   <?php if($_SESSION['role_type']!=1){?>    
                   <div style="position: absolute;right: 40px;text-transform: capitalize;font-weight: 600;font-size: 18px;top:40px
                      ">    
@@ -218,6 +251,31 @@ print_r($pendingleadfollowupresult);die;
                   <?php } ?>
                </div>
             </div>
+
+<?php if($_SESSION['role_type']==3 || $_SESSION['role_type']==2){?>
+               <div class="row p-3">
+    <!-- Import link -->
+    <div class="col-md-12 head">
+        <div class="float-end">
+            <a href="javascript:void(0);" class="btn btn-success" onclick="formToggle('importFrm');"><i class="fa fa-plus"></i> Import Excel</a>
+        </div>
+    </div>
+    <!-- Excel file upload form -->
+    <div class="col-md-12" id="importFrm" style="display: none;">
+        <form class="row g-3"  method="post" enctype="multipart/form-data" style="margin-top:10px">
+            <div class="col-auto">
+               <!--  <label for="fileInput" class="visually-hidden">File</label> -->
+                <input type="file" class="form-control" name="file" id="fileInput" />
+            </div>
+            <div class="col-auto">
+                <input type="submit" class="btn btn-primary mb-3" name="importsubmit" value="Import">
+            </div>
+        </form>
+    </div>
+     </div>
+
+<?php }?>
+
             <?php if($_SESSION['role_type']==1||$_SESSION['role_type']==3 || $_SESSION['role_type']==2){?>
             <div class="row subheading_info">
                <div style="margin-left:8px;">
@@ -236,6 +294,8 @@ print_r($pendingleadfollowupresult);die;
                   <br>
                </div>
             </div>
+
+
             <div class="row">
                <div class="col-md-5" style="padding:0px;margin-top:8px;">
                   <div class="list_view" >
@@ -260,8 +320,8 @@ print_r($pendingleadfollowupresult);die;
                         <br>
                      </div>
                   </div>
-                  <?php }?>
-               </div>
+                 </div>
+
                <div class="col-md-5 filter_section" >
                    <div class="mobile_lead_member_select_div">
                      <?php if($_SESSION['role_type']==1||$_SESSION['role_type']==2){ 
@@ -304,9 +364,36 @@ print_r($pendingleadfollowupresult);die;
                      </select>
                   </div>
                </div>
+
+
+
                <div class="col-md-2">
                   <button type="button" class="mobile_add_visit btn theme-btn pull-right " data-toggle="modal" data-target="#add_tag_list_modal" >New Lead <i class="fa fa-plus-circle"></i>
                   </button>
+
+                   
+            
+
+
+
+
+
+
+
+                <!--           <form method="POST" action="insertleadsexcel.php" enctype="multipart/form-data">
+                <div class="form-group">
+                        <label>Upload Excel File</label>
+                        <input type="file" name="file" class="form-control">
+                </div>
+                <div class="form-group">
+                        <button type="submit" name="Submit" class="btn btn-success">Upload</button>
+                </div>
+                <p>Download Demo File from here : <a href="demo.ods"><strong>Demo.ods</strong></a></p>
+               </form> -->
+                
+               </div>
+                <?php }?>
+
                   <div class="add_tag_list_modal">
                      <div class="modal fade" id="lead_edit_modal" role="dialog">
                         <div class="modal-dialog">
@@ -334,9 +421,85 @@ print_r($pendingleadfollowupresult);die;
                                              <input type="text" name="phone" class="form-control" id="edit_phone"/>
                                           </div>
                                           <div class="form-group" style="margin-bottom:10px;">
-                                             <label class="personal-info-label" style="margin-right:5px;width:175px;"><strong>Interested Location:-</strong></label>
-                                             <input type="text" name="interested_location" class="form-control" id="interested_location"/>
+                                             <label class="personal-info-label" style="margin-right:5px;width:175px;"><strong> Location:-</strong></label>
+                                             <input type="text" name="interested_location" class="form-control" id="interested_location_edit"/>
                                           </div>
+
+                                          <div class="form-group" style="margin-bottom:10px;">
+                                             <label class="personal-info-label" style="margin-right:5px;width:175px;"><strong> Interested For:-</strong></label>
+                                             <input type="text" name="interested_for" class="form-control" id="interested_for_edit"/>
+                                          </div>
+
+                                            <div class="form-group" style="margin-bottom:10px;">
+                                             <label class="personal-info-label" style="margin-right:5px;width:175px;"><strong> Budget:-</strong></label>
+                                             <input type="text" name="budget" class="form-control" id="budget_edit"/>
+                                          </div>
+
+
+
+                                          <?php
+                                             if($_SESSION['role_type']==1||$_SESSION['role_type']==2){?>
+                                          <div class="form-group" style="margin-bottom:10px;">
+                                             <label class="personal-info-label" style="margin-right:5px;width:175px;"><strong>Project Type:-</strong></label>
+                                             <select name="project_type" class="form-control" id="project_type_edit">
+                                                <?php 
+                                                   $sql='';
+                                                   if($_SESSION['role_type']==1){
+                                                   $sql = "SELECT id, project_name,project_image_url from project_information where 1 order by id desc";
+                                                   }
+                                                   else if($_SESSION['role_type']==2){
+                                                   $sql = "SELECT id, project_name,project_image_url from project_information where 1 and client_id=".$_SESSION['proj_info_id']." order by id desc";
+                                                   }
+                                                   
+                                                   $result = mysqli_query($conn,$sql);
+                                                   if ($result->num_rows > 0) {
+                                                   // output data of each row
+                                                   while($row = $result->fetch_assoc()) {?>
+                                                <option value="<?php echo $row['id'];?>"><?php echo $row['project_name'];?></option>
+                                                <?php }}?>
+                                             </select>
+                                          </div>
+                                          <?php }
+                                             else{?>
+                                          <div class="form-group" style="margin-bottom:10px;display:none;">
+                                             <label class="personal-info-label" style="margin-right:5px;width:175px;"><strong>Project Type:-</strong></label>
+                                             <select name="project_type" class="form-control" id="project_type_edit">
+                                                <?php 
+                                                   $sql = "SELECT id, project_name,project_image_url from project_information where 1 order by id desc";
+                                                   
+                                                   $result = mysqli_query($conn,$sql);
+                                                   if ($result->num_rows > 0) {
+                                                   // output data of each row
+                                                   while($row = $result->fetch_assoc()) {?>
+                                                <option value="<?php echo $row['id'];?>"><?php echo $row['project_name'];?></option>
+                                                <?php }}?>
+                                             </select>
+                                             <?php } ?>
+                                             <div class="form-group" style="margin-bottom:10px">
+                                                <label class="personal-info-label" style="margin-right:5px;width:175px;"><strong>Created At:-</strong></label>
+                                                <!-- <input type="text" name="phone_number" class="form-control" id="phone_number"/> -->
+                                                <input type="text" class="form-control" name="created_at_date" id = "datepicker-13_edit">
+                                             </div>
+                                             <div class="form-group" style="margin-bottom:10px;">
+                                                <label class="personal-info-label" style="margin-right:5px;width:175px;"><strong>Lead Source:-</strong></label>
+                                                <!--<input type="text" name="form_type" class="form-control" id="form_type"/>-->
+                                                <select name="form_type" class="form-control" id="form_type_edit">
+                                                   <option value="PPC">PPC</option>
+                                                   <option value="FACEBOOK">Facebook</option>
+                                                   <option value="INSTAGRAM">Instagram</option>
+                                                   <option value="DIRECTCALL">DirectCall</option>
+                                                   <option value="WHATSAPPCHAT">Whatsappchat</option>
+                                                   <option value="IVR">IVR</option>
+                                                </select>
+                                             </div>
+                                             
+                                              <div class="form-group" style="margin-bottom:10px;">
+                                             <label class="personal-info-label" style="margin-right:5px;width:175px;"><strong>Reference by:-</strong></label>
+                                             <input type="text" name="reference_by" class="form-control" id="reference_by_edit"/>
+                                          </div>
+
+
+
                                          
                                     </form>
                                     </div>
@@ -367,14 +530,25 @@ print_r($pendingleadfollowupresult);die;
                                           <label class="personal-info-label lead_follow_up_message_label" ><strong>Lead Follow Up Message:-</strong></label>
                                           <textarea class="form-control" required name="folowupmessage" id="folowupmessage"></textarea>
                                           <label class="personal-info-label lead_status__drop_label"><strong>Lead Status:-</strong></label>
-                                          <select id="lead_status" name="lead_status" class="form-control">
+                                         <!--  <select id="lead_status" name="lead_status" class="form-control">
                                              <option value="">All Lead</option>
                                              <option value="0">Raw Lead</option>
                                              <option value="1">Cold Lead</option>
                                              <option value="2">Warm Lead</option>
                                              <option value="3">Hot Lead</option>
                                              <option value="4">Non-Relevent Lead</option>
-                                          </select>
+                                          </select> -->
+
+
+                                       <select id="lead_status" name="lead_status" class="form-control" >
+                        <option  value='' >Selelct all</option>
+                        <?php if ($projectstatusresult->num_rows > 0) {
+                           // output data of each row
+                           while($row = $projectstatusresult1->fetch_assoc()) {?>
+                        <option  value=<?php echo  $row['id'];?> ><?php echo  $row['lead_status_name'];?></option>
+                        <?php }}?>
+                     </select>
+
                                           <hr/>
                                        </div>
                                        <div class="form-group" style="margin-bottom:10px">
@@ -452,6 +626,8 @@ print_r($pendingleadfollowupresult);die;
                                     </form>
                                     </div>
                                  </div>
+
+
                                  <div id="view_lead_follow_history" >
                                     <div class="user-info-area">
                                        <div style="overflow-x:auto;">
@@ -497,17 +673,22 @@ print_r($pendingleadfollowupresult);die;
                                           <div class="form-group" style="margin-bottom:10px;">
                                              <label class="personal-info-label" style="margin-right:5px;width:150px;"><strong>Team Member:-</strong></label>
                                              <?php 
+
+                                             // echo $_SESSION['proj_info_id'];
                                                 $member_access_id='';
                                                 $sql111='';
-                                                      $sql111 = "SELECT leads.TeamMemeberAccessId from project_team 
-                                                                      left join leads on leads.team_id=project_team.id
-                                                                      where project_team.role_type=3 and project_team.project_id=".$_SESSION['proj_info_id']." order by project_team.id desc";
-                                                
+
+                                                //client_team_members.role_type=3
+                                                      $sql111 = "SELECT leads.team_member_access_id from client_team_members 
+                                                                      left join leads on leads.team_member_id=client_team_members.id
+                                                                      where  client_team_members.client_id=".$_SESSION['proj_info_id']." order by client_team_members.id desc";
+
+                                               
                                                 $result12 = mysqli_query($conn,$sql111);
                                                 if ($result12->num_rows > 0) 
                                                 {
                                                     while($rowaccess = $result12->fetch_assoc()) {
-                                                        $member_access_id=$rowaccess['TeamMemeberAccessId'];
+                                                        $member_access_id=$rowaccess['team_member_access_id'];
                                                     }
                                                 }
                                                 ?>
@@ -516,11 +697,19 @@ print_r($pendingleadfollowupresult);die;
                                                 <?php 
                                                    $sql1212='';
                                                    if($_SESSION['role_type']==1){
-                                                   $sql1212 = "SELECT id,name from project_team where role_type=3  order by id desc";
+                                                   $sql1212 = "SELECT id,name from client_team_members where role_type=4  order by id desc";
                                                    }
-                                                   else
+                                                    else if($_SESSION['role_type']==2){
+                                                   $sql1212 = "SELECT id,name from client_team_members where role_type=4 and client_id=".$_SESSION['proj_info_id']." order by id desc";
+                                                   }
+                                                   else if($_SESSION['role_type']==3)
                                                    {
-                                                   $sql1212 = "SELECT id,name from project_team where role_type=3 and project_id=".$_SESSION['proj_info_id']." order by id desc";
+                                                   $sql1212 = "SELECT client_team_sub_members.team_member_id from client_team_members left join client_team_sub_members on client_team_sub_members.team_leader_id=client_team_members.id where client_team_members.role_type=3 and client_team_members.client_id=".$_SESSION['proj_info_id']."
+
+                                                     
+                                                    order by client_team_members.id desc";
+
+
                                                    }   
                                                    
                                                    $result = mysqli_query($conn,$sql1212);
@@ -573,6 +762,52 @@ print_r($pendingleadfollowupresult);die;
                                              <label class="personal-info-label" style="margin-right:5px;width:150px;"><strong>Phone Number:-</strong></label>
                                              <input type="text" name="phone_number" class="form-control" id="phone_number"/>
                                           </div>
+
+
+                                          <div class="form-group" style="margin-bottom:10px">
+                                             <label class="personal-info-label" style="margin-right:5px;width:150px;"><strong>Location:-</strong></label>
+                                             <input type="text" name="location" class="form-control" id="location"/>
+                                          </div>
+
+                                          <div class="form-group" style="margin-bottom:10px">
+                                             <label class="personal-info-label" style="margin-right:5px;width:150px;"><strong>Interested For:-</strong></label>
+                                             <input type="text" name="interested_for" class="form-control" id="interested_for"/>
+                                          </div>
+
+
+                                          <div class="form-group" style="margin-bottom:10px">
+                                             <label class="personal-info-label" style="margin-right:5px;width:150px;"><strong>Budget:-</strong></label>
+                                             <input type="text" name="budget" class="form-control" id="budget"/>
+                                          </div>
+
+                                            <?php
+                                             if($_SESSION['role_type']==1){?>
+                                          <div class="form-group" style="margin-bottom:10px;">
+                                             <label class="personal-info-label" style="margin-right:5px;width:150px;"><strong>Client Type:-</strong></label>
+                                             <select  name="client_type" class="form-control" id="client_type">
+                                                <?php 
+                                                   $sql='';
+                                                   if($_SESSION['role_type']==1){
+                                                   $sql = "SELECT id, name from clients where 1 order by id desc";
+                                                   }
+                                                  
+                                                   
+                                                   $result = mysqli_query($conn,$sql);
+                                                   if ($result->num_rows > 0) {
+                                                   // output data of each row
+                                                   while($row = $result->fetch_assoc()) {?>
+                                                <option value="<?php echo $row['id'];?>"><?php echo $row['name'];?></option>
+                                                <?php }}?>
+                                             </select>
+                                          </div>
+                                          <?php }
+                                           
+                                           elseif($_SESSION['role_type']==2 || $_SESSION['role_type']==3 || $_SESSION['role_type']==4){?>
+
+<input type="hidden" name="client_type" value="<?php  echo $_SESSION['proj_info_id'];?>">
+
+                                          <?php  }?>
+
                                           <?php
                                              if($_SESSION['role_type']==1||$_SESSION['role_type']==2){?>
                                           <div class="form-group" style="margin-bottom:10px;">
@@ -584,7 +819,7 @@ print_r($pendingleadfollowupresult);die;
                                                    $sql = "SELECT id, project_name,project_image_url from project_information where 1 order by id desc";
                                                    }
                                                    else if($_SESSION['role_type']==2){
-                                                   $sql = "SELECT id, project_name,project_image_url from project_information where 1 and id=".$_SESSION['proj_info_id']." order by id desc";
+                                                   $sql = "SELECT id, project_name,project_image_url from project_information where 1 and client_id=".$_SESSION['proj_info_id']." order by id desc";
                                                    }
                                                    
                                                    $result = mysqli_query($conn,$sql);
@@ -633,6 +868,8 @@ print_r($pendingleadfollowupresult);die;
                                              <label class="personal-info-label" style="margin-right:5px;width:150px;"><strong>Reference by:-</strong></label>
                                              <input type="text" name="reference_by" class="form-control" id="reference_by"/>
                                           </div>
+
+
                                              <hr/>
                                        </form>
                                        </div>
@@ -656,7 +893,6 @@ print_r($pendingleadfollowupresult);die;
                         </div>
                      </div>
                   </div>
-               </div>
                <!-- /.box-header -->
                   <table border="0" cellspacing="5" cellpadding="5" style="width:100%">
                      <tbody>
@@ -717,7 +953,16 @@ print_r($pendingleadfollowupresult);die;
          " />
       <script src="dist/js/demo.js"></script>
     
-  
+  <script>
+function formToggle(ID){
+    var element = document.getElementById(ID);
+    if(element.style.display === "none"){
+        element.style.display = "block";
+    }else{
+        element.style.display = "none";
+    }
+}
+</script>
       <script type="text/javascript" language="javascript">
          var ipAddress="";
          function getIP(json) {
@@ -912,7 +1157,13 @@ print_r($pendingleadfollowupresult);die;
          $("#edit_name").val(response.name);
          $("#edit_email").val(response.email);
          $("#edit_phone").val(response.phone);
-         $("#interested_location").val(response.interested_location);
+         $("#interested_location_edit").val(response.location);
+         $("#interested_for_edit").val(response.interested_for);
+         $("#budget_edit").val(response.budget);
+         $("#project_type_edit").val(response.project_assigned);
+         $("#form_type_edit").val(response.lead_source);
+         $("#reference_by_edit").val(response.reference_by);
+         $("#datepicker-13_edit").datepicker('setDate', response.created_at);
          },
          error: function(xhr, status, error) {
          var err = eval("(" + xhr.responseText + ")");
@@ -1237,8 +1488,14 @@ print_r($pendingleadfollowupresult);die;
          }
          function addNewLeadMemeberAccess()
          { 
+
          var fd3=document.getElementById('leadmemberaccessform');
          var form_data2 = new FormData(fd3); 
+
+
+
+
+
          $.ajax({
              url:"lead_member_access.php",
               data:form_data2,
@@ -1334,6 +1591,21 @@ print_r($pendingleadfollowupresult);die;
          else if ($('#form_type').val()== '') {
          alert("Please Select Form Type");
          }
+
+         else if ($('#location').val()== '') {
+         alert("Please Enter Location");
+         }
+         else if ($('#interested_for').val()== '') {
+         alert("Please Select Interested-for");
+         }
+         else if ($('#budget').val()== '') {
+         alert("Please Select Budget");
+         }
+
+         else if ($('#client_type').val()== '') {
+         alert("Please Select Client");
+         }
+
          else{
          $.ajax({
          url:"AjaxCreateLead.php", 
@@ -1398,6 +1670,7 @@ print_r($pendingleadfollowupresult);die;
          $(function()
          {
              $( "#datepicker-13" ).datepicker({ dateFormat: 'yy-mm-dd' });
+             $( "#datepicker-13_edit" ).datepicker({ dateFormat: 'yy-mm-dd' });
              $( "#datepicker-14" ).datepicker({ dateFormat: 'yy-mm-dd' });
              $('#timepicker-14').timepicker  
              ({  

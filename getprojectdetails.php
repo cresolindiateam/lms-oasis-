@@ -3,7 +3,7 @@ include("dbconfig.php");
 if(isset($_POST['projectid']))
 {
 $row_id=$_POST['projectid'];
-$query = "select project_name,project_url,project_image_url,client_name,username from  project_information  WHERE id = ".$row_id;
+$query = "select project_name,project_desc,project_url,project_image_url,client_id from  project_information  WHERE id = ".$row_id;
 
 if (mysqli_query($conn, $query)) {
   	$status=1;
@@ -16,7 +16,7 @@ if (mysqli_query($conn, $query)) {
 }
 
 
-$data1= array("Status"=>$status,"Message"=>$message,"ProjectName"=>$row['project_name'],"ClientName"=>$row['client_name'],"UserName"=>$row['username'],"ProjectImageUrl"=>$row['project_image_url'],"ProjectUrl"=>$row['project_url']);
+$data1= array("Status"=>$status,"Message"=>$message,"ProjectName"=>$row['project_name'],"ProjectDesc"=>$row['project_desc'],"ProjectImageUrl"=>$row['project_image_url'],"ProjectUrl"=>$row['project_url'],"client_id"=>$row['client_id']);
 echo json_encode($data1);
 }
 ?>

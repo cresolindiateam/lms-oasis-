@@ -25,6 +25,11 @@ else if(basename($_SERVER['PHP_SELF'])=="team_member.php"){
 else if(basename($_SERVER['PHP_SELF'])=="project.php"){
   $classProject="treeview active";
 }
+
+else if(basename($_SERVER['PHP_SELF'])=="client_list.php"){
+  $classClient="treeview active";
+}
+
 ?> 
 <!--<div class="container">
   <div class="modal fade" id="change-password-modal" role="dialog">
@@ -80,7 +85,11 @@ else if(basename($_SERVER['PHP_SELF'])=="project.php"){
           else if($_SESSION['role_type']==2)
           {echo "(Admin)";}
           else if($_SESSION['role_type']==3)
-          {echo "(Team Member)";} ?> <br> <?php
+          {echo "(Team Leader)";}
+
+else if($_SESSION['role_type']==4)
+          {echo "(Team Member)";}
+           ?> <br> <?php
           if($_SESSION['role_type']==3 || $_SESSION['role_type']==2){?> <small> <?php echo $_SESSION['project_name']; ?> </small> <?php }?> </p>
         </div>
       </div>
@@ -103,24 +112,50 @@ else if(basename($_SERVER['PHP_SELF'])=="project.php"){
           <i class="fa fa-check-circle-o"></i>
           <span>Lead Count</span>
         </a>
-      </li> <?php }?> <?php if($_SESSION['role_type']==1){?> <li class="
+      </li> <?php }?> <?php if($_SESSION['role_type']==1){
+
+      ?> <li class="
 									<?php echo $classCompanyClients; ?>">
         <a href="visitor_entries.php">
           <i class="fa fa-check-circle-o"></i>
           <span>Visitor Entries</span>
         </a>
       </li>
-      <li class="
-									<?php echo $classProject; ?>">
+
+
+       <?php }?> 
+
+
+
+
+
+
+
+      <?php if($_SESSION['role_type']==3 || $_SESSION['role_type']==2 || $_SESSION['role_type']==1){?> 
+
+
+<li class="
+                  <?php echo $classProject; ?>">
         <a href="project.php">
           <i class="fa fa-check-circle-o"></i>
           <span>Projects</span>
         </a>
-      </li> <?php }?> <?php if($_SESSION['role_type']==2 || $_SESSION['role_type']==1){?> <li class="
+      </li>
+
+
+        <li class="
 									<?php echo  $classCompanyTeam; ?>">
         <a href="team_member.php">
           <i class="fa fa-check-circle-o"></i>
           <span>Team Member</span>
+        </a>
+      </li> <?php }?>
+
+      <?php if($_SESSION['role_type']==1){?> <li class="
+                  <?php echo  $classClient; ?>">
+        <a href="client_list.php">
+          <i class="fa fa-check-circle-o"></i>
+          <span>Client List</span>
         </a>
       </li> <?php }?>
     </ul>

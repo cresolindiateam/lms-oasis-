@@ -1,9 +1,13 @@
 <?php
+
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 session_start();
 require 'dbconfig.php'; 
 if(isset($_SESSION['proj_team_id']))
 {
-  header("location: leads_list.php");
+   header("location: leads_list.php");
 }
 if(isset($_POST['SignIn']) && $_POST['SignIn']!='')
 { 
@@ -11,27 +15,35 @@ if(isset($_POST['SignIn']) && $_POST['SignIn']!='')
 	{
       $username=$_POST['username'];
       $password= md5($_POST['password']); 
-      $sql="select id,name,email,password,phone_number,project_id,role_type from project_team  where team_hidden_status=0 and name=?";
+      $sql="select id,name,email,password,phone_number,client_id,role_type from client_team_members  where team_hidden_status=0 and name=?";
       $stmt = $conn->prepare($sql);
       $stmt->bind_param('s', $username);
       $stmt->execute();
       $result = $stmt->get_result();
-      $count=mysqli_num_rows($result); 
+      $count=mysqli_num_rows($result);
+      
      if($count>0)
      { // Super Admin 
-      while ($row = $result->fetch_assoc()) 
+       while ($row = $result->fetch_assoc()) 
       {  
        if($password==$row["password"])  
        {   
          $SessionStatus=true;
-         session_start();
          $_SESSION['valid'] = true;
          $_SESSION['timeout'] = time();
-         $_SESSION['proj_info_id'] =$row['project_id'];
+        
+          if($row['role_type']==1)
+          {
+            $_SESSION['proj_info_id'] ='';
+          }
+          else
+          {
+            $_SESSION['proj_info_id'] =$row['client_id'];
+          }
          $_SESSION['proj_team_id'] = $row["id"];
          $_SESSION['role_type'] = $row["role_type"];
          $_SESSION['team_member_name'] = $row["name"];
-          header("Location: leads_list.php");
+         header("Location: leads_list.php");
          $LogedInMessage="You are successfully Logged In..";
          echo "<script type='text/javascript'>alert('$LogedInMessage')</script>";
        } 
@@ -40,14 +52,10 @@ if(isset($_POST['SignIn']) && $_POST['SignIn']!='')
        $failed=1;
        $UsernameError="Invalid User or Password! Enter valid details.";
        echo "<script type='text/javascript'>alert('$UsernameError')
-       
        setTimeout(() => { 
-    window.location.href=window.location.origin;
-}, 1000);
-       
+       window.location.href=window.location.origin;
+       }, 1000);
        </script>";
-       
-    
        exit;
        }
     }
@@ -58,33 +66,24 @@ if(isset($_POST['SignIn']) && $_POST['SignIn']!='')
        $UsernameError="Invalid User or Password! Enter valid details.";
        echo "<script type='text/javascript'>alert('$UsernameError')
           setTimeout(() => { 
-    window.location.href= window.location.origin;
-  
-}, 500);
-       
+          window.location.href= window.location.origin;
+       }, 500);
        </script>";
        exit;
        }
   }
-else{
-            $failed=1;
-              $UsernameError="Username or Password can not be empty.";
-              echo "<script type='text/javascript'>alert('$UsernameError')
-              
-              
-                 setTimeout(() => { 
-    window.location.href=window.location.origin;
-   
-}, 500);
-              
-              </script>";
-              exit;
-  }
+  else{
+              $failed=1;
+                $UsernameError="Username or Password can not be empty.";
+                echo "<script type='text/javascript'>alert('$UsernameError')
+                   setTimeout(() => { 
+                  window.location.href=window.location.origin;
+                 }, 500);
+                </script>";
+                exit;
+    }
 }  
 ?>
-
-
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -101,18 +100,10 @@ else{
 <body class="hold-transition login-page">
 <div class="login-box">
   <div class="login-logo">
-  
   </div>
-
- 
-
   <!-- /.login-logo -->
   <div class="login-box-body">
- <!--  <img src="dist/img/logo.jpg"> -->
- <div class="mycompany-name">
-Admin
- <!--  <p>To ensure that the quality repair done</p> -->
-  </div>
+ <div class="mycompany-name">Admin</div>
     <hr>
     <img src="dist/img/logo.jpg" style="display: none;">
     <div class="theme-form">
@@ -120,41 +111,32 @@ Admin
           <div class="login-header" style="display:none">Sign in to Admin Panel</div>
           <div class="login-inner-box">
       <div class="form-group has-feedback">
-
       <label style="display:none">Username</label>
         <input type="text" class="form-control" placeholder="Username" name="username">
         <i class="fa fa-user login-inner-icon"></i>
      </div>
-     
       <div class="form-group has-feedback">
       <label style="display:none">Password</label>
         <input type="password" class="form-control" placeholder="Password" name="password" autocomplete="off">
         <i class="fa fa-lock login-inner-icon"></i>
       </div>
-
       <div class="row">
-        
         <!-- /.col -->
         <div class="col-xs-12">
         <center><input type="submit" name="SignIn" class="btn theme-btn " value="Sign In" /></center>
-          
         </div>
         <!-- /.col -->
       </div>
        </div>
-
       </div>
     </form>
     </div>
    
  <div class="designby-text">Designed By <a href="http://www.cresol.in/" target="blank">Cresol.in</a></div>
   </div>
-
- 
   <!-- /.login-box-body -->
 </div>
 <!-- /.login-box -->
-
 <!-- jQuery 2.2.3 -->
 <script src="plugins/jQuery/jquery-2.2.3.min.js"></script>
 <!-- Bootstrap 3.3.6 -->

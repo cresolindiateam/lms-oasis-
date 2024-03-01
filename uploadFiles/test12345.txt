@@ -1,0 +1,107 @@
+BEGIN
+DECLARE RST text;
+DECLARE RST1 VARCHAR(255);
+DECLARE RST3 VARCHAR(255);
+DECLARE RST4 VARCHAR(255);
+DECLARE RST5 INT;
+DECLARE RST6 varchar(1000);
+DECLARE lengthdata int;
+DECLARE indexdata int;
+DECLARE chardata varchar(1000);
+DECLARE RST7 INT;
+DECLARE RST8 varchar(1000);
+DECLARE lengthdata1 int;
+DECLARE indexdata1 int;
+DECLARE chardata1 varchar(1000);
+
+
+set RST5 = (select count(client_team_sub_members.team_member_id) from client_team_sub_members left join client_team_members on client_team_members.id= client_team_sub_members.team_leader_id where 1 and client_team_sub_members.team_leader_id=member_id);
+
+set RST6 = (select client_team_sub_members.team_member_id from client_team_sub_members left join client_team_members on client_team_members.id= client_team_sub_members.team_leader_id where 1 and client_team_sub_members.team_leader_id=member_id);
+
+
+set RST7 = (select count(id) from client_team_members where id=member_id);
+
+set RST8 = (select id from client_team_members where id=member_id);
+
+
+IF role_type = 4 THEN
+
+IF team_id != ''   THEN
+SET RST = CONCAT('select count(leads.lead_status) as lead_count ,leads.lead_status,client_team_members.name from leads left join client_team_members on leads.TeamMemeberAccessId=client_team_members.id where leads.TeamMemeberAccessId=',member_id,' and leads.client_id=',client_id,' group by leads.lead_status');
+
+ELSEIF team_id = 'all'   THEN
+SET RST = CONCAT('select count(leads.lead_status) as lead_count ,leads.lead_status,client_team_members.name from leads left join client_team_members on leads.TeamMemeberAccessId=client_team_members.id where leads.TeamMemeberAccessId=',member_id,' and leads.client_id=',client_id,' group by leads.lead_status');
+
+ELSE
+SET RST = CONCAT('select count(leads.lead_status) as lead_count ,leads.lead_status from leads left join client_team_members on leads.TeamMemeberAccessId=client_team_members.id where leads.TeamMemeberAccessId=',member_id,' and leads.client_id=',client_id,' group by leads.lead_status');
+
+END IF;
+
+ELSEIF role_type = 2 THEN
+IF team_id != '' THEN
+SET RST = CONCAT('select count(leads.lead_status) as lead_count ,leads.lead_status,client_team_members.name from leads left join client_team_members on leads.TeamMemeberAccessId=client_team_members.id where leads.TeamMemeberAccessId =',member_id,' and leads.client_id=',client_id,' group by leads.lead_status');
+
+ELSEIF team_id='all' then
+
+set indexdata1 = 1;
+set lengthdata1 = RST7;
+while (indexdata1 <= lengthdata1) DO
+set chardata = SUBSTRING_INDEX(SUBSTRING_INDEX(RST8, ',',indexdata), ',', -1);
+SET RST = CONCAT('select count(*) as data,lead_status,client_team_members.name  from leads where lead_hidden_status=0  and leads.TeamMemeberAccessId= ',chardata1,' and leads.client_id=1');
+set indexdata1 = indexdata1 + 1;
+END WHILE;
+
+ELSE
+SET RST = CONCAT('select count(leads.lead_status) as lead_count ,leads.lead_status from leads left join client_team_members on leads.TeamMemeberAccessId=client_team_members.id where leads.TeamMemeberAccessId =',member_id,' and leads.client_id=',client_id,' group by leads.lead_status');
+end if; 
+
+ELSEIF role_type = 3 THEN
+IF team_id != ''  THEN
+SET RST = CONCAT('select count(leads.lead_status) as lead_count ,leads.lead_status,client_team_members.name from leads left join client_team_members on leads.TeamMemeberAccessId=client_team_members.id where leads.TeamMemeberAccessId=',member_id,' and leads.client_id=',client_id,' group by leads.lead_status');
+
+ELSEIF team_id = 'all'  THEN
+
+
+set indexdata = 1;
+set lengthdata = RST5;
+while (indexdata <= lengthdata) DO
+set chardata = SUBSTRING_INDEX(SUBSTRING_INDEX(RST6, ',',indexdata), ',', -1);
+SET RST = CONCAT('select count(*) as data,lead_status,client_team_members.name  from leads where lead_hidden_status=0  and leads.TeamMemeberAccessId= ',chardata,' and leads.client_id=1');
+set indexdata = indexdata + 1;
+select  CONCAT(RST) as query;
+
+END WHILE;
+
+
+ELSE
+SET RST = CONCAT('select count(leads.lead_status) as lead_count ,leads.lead_status from leads left join client_team_members on leads.TeamMemeberAccessId=client_team_members.id where leads.TeamMemeberAccessId=',member_id,' and leads.client_id=',client_id,' group by leads.lead_status');
+end if;
+
+ELSE
+SET RST = CONCAT('select count(leads.lead_status) as lead_count ,leads.lead_status from leads left join client_team_members on leads.TeamMemeberAccessId=client_team_members.id where leads.TeamMemeberAccessId=',member_id,' and leads.client_id=',client_id,' group by leads.lead_status');
+END IF;
+
+IF start_date is NULL OR start_date = '' && end_date  is null or end_date = '' THEN
+SET RST1 = '';
+ELSE 
+SET RST1 = CONCAT(' and leads.created_at between ',"'", start_date,"'", ' and ',"'",end_date,"'");
+END IF;
+
+
+
+IF project_id is NULL OR project_id = '' THEN
+SET RST3 = '';
+ELSEIF project_id='all' THEN
+SET RST3 = CONCAT('');
+
+ELSE 
+SET RST3 = CONCAT(' and leads.project_assigned = ' , project_id);
+END IF;
+
+
+
+
+select  CONCAT(RST,RST1,RST3) as query;
+
+END

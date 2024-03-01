@@ -1,21 +1,13 @@
 <?php
 require 'dbconfig.php';
-
-/*ini_set("session.gc_maxlifetime", "3600");
-ini_set("session.cookie_lifetime","3600");*/
-
 session_start();
-if(isset($_SESSION['proj_info_id'])){
+/*if(isset($_SESSION['proj_info_id'])){
   if($_SESSION['proj_info_id']==""){
     echo "<script> window.location = 'index.php'</script>";
   }
 }else{
   echo "<script> window.location = 'leads_list.php'</script>";
-}
-
-
-
-
+}*/
 
 ?>
 

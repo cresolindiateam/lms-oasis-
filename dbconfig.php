@@ -15,17 +15,17 @@ $username = "grandthum";*/
 $username="newrealstate_LeadManagementUser";
 $password="eNUt@F$Yo0KY";
 $dbname = "newrealstate_LeadManagementDB";*/
-
-//ajay
 // $servername="localhost";
-// $username="newleaduser";
-// $password="tQc#gXaD6F&y";
-// $dbname = "oasisproperty_LeadManagementDB";
+// $username="root";
+// $password="";
+// $dbname = "crm_lead_management";
+
+
 
 $servername="localhost";
-$username="root";
-$password="";
-$dbname = "oasisproperty_LeadManagementDB";
+$username="crm_lead_mangement";
+$password="6bOsf0N!Mui8";
+$dbname = "crm_lead_management";
 
       // Create connection
   /*  $conn= mysqli_connect($server,$user,$pass,$database);
@@ -43,18 +43,9 @@ $database= "lead_management_db";*/
 
 // Create connection
 $conn = mysqli_connect($servername, $username, $password, $dbname);
-
-
 // Check connection
 if (!$conn) {
   die("Connection failed: " . mysqli_connect_error());
 }
-
-
-
-
-
-
-
 
 ?>
